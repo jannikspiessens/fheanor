@@ -61,7 +61,7 @@ impl HERingConvolution<zn_64::Zn> for feanor_math_hexl::conv::HEXLConvolution {
         Self::new(ring, max_log2_len)
     }
 
-    fn ring(&self) -> RingRef<feanor_math::rings::zn::zn_64::ZnBase> {
+    fn ring(&self) -> RingRef<'_, feanor_math::rings::zn::zn_64::ZnBase> {
         RingRef::new(feanor_math_hexl::conv::HEXLConvolution::ring(&self).get_ring())
     }
 }
@@ -187,8 +187,8 @@ impl FheanorNegacyclicNTT<Zn> for feanor_math_hexl::hexl::HEXLNegacyclicNTT {
         feanor_math_hexl::hexl::HEXLNegacyclicNTT::for_zn(ring, log2_rank).unwrap()
     }
 
-    fn ring(&self) -> &Zn {
-        feanor_math_hexl::hexl::HEXLNegacyclicNTT::ring(self)
+    fn ring(&self) -> RingRef<'_, ZnBase> {
+        RingRef::new(self.ring().get_ring())
     }
 }
 

@@ -1,3 +1,5 @@
+use tracing::instrument;
+
 use feanor_math::algorithms::eea::*;
 use feanor_math::algorithms::int_factor::factor;
 use feanor_math::algorithms::resultant::ComputeResultantRing;
@@ -304,6 +306,7 @@ impl CLPXEncoding {
     ///   Z[X]/(p, t(X^m2), Phi_m(X)) -> Fp[X]/(G(X))
     /// ```
     /// 
+    #[instrument(skip_all)]
     pub fn map(&self, f: &El<DensePolyRing<BigIntRing>>) -> El<IsomorphicRing> {
         if self.ZZX().is_zero(f) {
             return self.plaintext_ring.zero();
@@ -315,6 +318,7 @@ impl CLPXEncoding {
     ///
     /// Finds a small preimage under the map `Z[X] -> Z[𝝵]/(p, t(𝝵^m2)) -> Fp[X]/(G(X))`
     /// 
+    #[instrument(skip_all)]
     pub fn small_preimage(&self, x: &El<IsomorphicRing>) -> El<DensePolyRing<BigIntRing>> {
         // since X -> X, we can operate on every coefficient separately
         let result = self.ZZX().from_terms(self.plaintext_ring().wrt_canonical_basis(&x).iter().enumerate().flat_map(|(i, c)|
@@ -333,6 +337,7 @@ impl CLPXEncoding {
     /// ```
     /// where `lift(x)` is an arbitrary lift of `x` to `Z[𝝵]/(t(𝝵^m2))`.
     /// 
+    #[instrument(skip_all)]
     pub fn encode<C>(&self, ciphertext_ring: C, x: &El<IsomorphicRing>) -> El<C>
         where C: RingStore,
             C::Type: BGFVCiphertextRing + CyclotomicRing
@@ -354,6 +359,7 @@ impl CLPXEncoding {
     ///   Z[𝝵]/(Q) -> Z[𝝵]/(p, t(𝝵^m2)),  x -> round(t(𝝵^m2) x / Q) mod (p, t(𝝵^m2))
     /// ```
     /// 
+    #[instrument(skip_all)]
     pub fn decode<C>(&self, ciphertext_ring: C, x: &El<C>) -> El<IsomorphicRing>
         where C: RingStore,
             C::Type: BGFVCiphertextRing + CyclotomicRing

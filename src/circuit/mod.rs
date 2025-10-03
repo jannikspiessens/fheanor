@@ -6,6 +6,7 @@ use std::io::BufWriter;
 
 use serde::de::DeserializeSeed;
 use serde::Serialize;
+use tracing::instrument;
 
 use serialization::{DeserializeSeedPlaintextCircuit, SerializablePlaintextCircuit};
 use evaluator::CircuitEvaluator;
@@ -367,7 +368,7 @@ impl<R: ?Sized + RingBase> PlaintextCircuit<R> {
         }
     }
 
-    fn computed_wire_count(&self) -> usize {
+    pub fn computed_wire_count(&self) -> usize {
         self.gates.iter().map(|gate| match gate {
             PlaintextCircuitGate::Mul(_, _) => 1,
             PlaintextCircuitGate::Square(_) => 1,
@@ -1050,12 +1051,41 @@ impl<R: ?Sized + RingBase> PlaintextCircuit<R> {
         return self.evaluate_generic(inputs, HomEvaluatorGal::new(hom));
     }
 
+    pub fn plain_multiplication_count(&self) -> usize {
+        self.gates.iter().map(|gate| match gate {
+            PlaintextCircuitGate::Gal(_, t) => vec![t],
+            PlaintextCircuitGate::Mul(lhs, rhs) => vec![lhs, rhs],
+            PlaintextCircuitGate::Square(t) => vec![t]
+        }).flatten().chain(self.output_transforms.iter()).fold(0, |acc, lc|
+            lc.factors.iter().filter(|coeff| match coeff {
+                Coefficient::Other(_) => true,
+                _ => false
+            }).count() + acc
+        )
+    }
+
     pub fn has_galois_gates(&self) -> bool {
         self.gates.iter().any(|gate| match gate {
             PlaintextCircuitGate::Gal(_, _) => true,
             PlaintextCircuitGate::Mul(_, _) => false,
             PlaintextCircuitGate::Square(_) => false
         })
+    }
+
+    pub fn galois_gate_count(&self) -> usize {
+        self.gates.iter().filter(|gate| match gate {
+            PlaintextCircuitGate::Gal(_, _) => true,
+            PlaintextCircuitGate::Mul(_, _) => false,
+            PlaintextCircuitGate::Square(_) => false
+        }).count()
+    }
+
+    pub fn galois_automorphisms_count(&self) -> usize {
+        self.gates.iter().fold(0, |acc, gate|
+            if let PlaintextCircuitGate::Gal(gs, _) = gate {
+                acc + gs.len()
+            } else { acc }
+        )
     }
 
     pub fn has_multiplication_gates(&self) -> bool {
@@ -1135,6 +1165,7 @@ impl<R: ?Sized + RingBase> PlaintextCircuit<R> {
     }
 }
 
+#[instrument(skip_all)]
 pub fn read_or_create_circuit<R, F, const LOG: bool>(ring: R, base_name: &str, cache_dir: Option<&str>, create: F) -> PlaintextCircuit<R::Type>
     where R: RingStore + Copy,
         R::Type: CyclotomicRing + SerializableElementRing,

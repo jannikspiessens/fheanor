@@ -541,15 +541,38 @@ impl<R: ?Sized + RingBase> PlaintextCircuit<R> {
         return result;
     }
 
-    pub fn vec_add<S: RingStore<Type = R>>(size: usize, _ring: S) -> Self {
+    pub fn vec_add<S: RingStore<Type = R>>(size: usize, _ring: S, sub: bool) -> Self {
         let result = Self {
             input_count: 2*size,
             gates: Vec::new(),
             output_transforms: (0..size).map(|i| LinearCombination{
                 constant: Coefficient::Zero,
                 factors: (0..2*size).map(|j|
-                    if (j % size) == i {Coefficient::One} else {Coefficient::Zero}).collect()
+                    if (j % size) == i {
+                        if sub && j >= size { Coefficient::NegOne } else { Coefficient::One }
+                    } else {Coefficient::Zero}).collect()
             }).collect()
+        };
+        return result;
+    }
+
+    pub fn fold_add<S: RingStore<Type = R>>(size: usize, _ring: S, sub: bool) -> Self {
+        let result = Self {
+            input_count: 2*size,
+            gates: Vec::new(),
+            output_transforms: (0..size).map(|i| 
+                LinearCombination{
+                    constant: Coefficient::Zero,
+                    factors: (0..2*size).map(|j|
+                        if j == i {Coefficient::One} else {Coefficient::Zero}).collect()
+                }
+            ).chain((0..size).map(|i| LinearCombination{
+                constant: Coefficient::Zero,
+                factors: (0..2*size).map(|j|
+                    if (j % size) == i {
+                        if sub && j < size{ Coefficient::NegOne } else { Coefficient::One }
+                    } else {Coefficient::Zero}).collect()
+            })).collect()
         };
         return result;
     }

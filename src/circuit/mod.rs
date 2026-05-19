@@ -66,6 +66,14 @@ impl<R> Copy for Coefficient<R>
 
 impl<R: ?Sized + RingBase> Coefficient<R> {
 
+    pub fn deref_other(&self) -> &R::Element {
+        if let Coefficient::Other(x) = &self {
+            x
+        } else {
+            panic!("Can only deref Coefficient::Other");
+        }
+    }
+
     pub fn clone<S: RingStore<Type = R>>(&self, ring: S) -> Self {
         match self {
             Coefficient::Zero => Coefficient::Zero,

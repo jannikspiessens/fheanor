@@ -8,7 +8,6 @@ use std::marker::PhantomData;
 
 use feanor_math::integer::*;
 use feanor_math::ring::*;
-use feanor_math::rings::rust_bigint::RustBigint;
 use feanor_math::serialization::*;
 use serde::Deserializer;
 use serde::Serializer;
@@ -127,16 +126,16 @@ impl<'a> From<&'a str> for CachedDataKeyLiteral {
     }
 }
 
-impl<'a> From<(&'a str, &'a RustBigint)> for CachedDataKeyLiteral {
+impl<'a> From<(&'a str, &'a BigIntRingEl)> for CachedDataKeyLiteral {
 
-    fn from(value: (&'a str, &'a RustBigint)) -> Self {
+    fn from(value: (&'a str, &'a BigIntRingEl)) -> Self {
         Self::Integer(value.0.to_owned(), ZZbig.clone_el(value.1))
     }
 }
 
-impl<'a> From<(&'a str, RustBigint)> for CachedDataKeyLiteral {
+impl<'a> From<(&'a str, BigIntRingEl)> for CachedDataKeyLiteral {
 
-    fn from(value: (&'a str, RustBigint)) -> Self {
+    fn from(value: (&'a str, BigIntRingEl)) -> Self {
         Self::Integer(value.0.to_owned(), value.1)
     }
 }

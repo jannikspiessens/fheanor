@@ -185,6 +185,24 @@ checksum = "edd0f118536f44f5ccd48bcb8b111bdc3de888b58c74639dfb034a357d0f206d"
 [[package]]
 name = "feanor-math"
 version = "3.5.18"
+dependencies = [
+ "append-only-vec",
+ "atomicbox",
+ "bytemuck",
+ "feanor-serde",
+ "libc",
+ "oorandom",
+ "serde",
+ "serde_assert",
+ "serde_bytes",
+ "smallvec",
+ "stability",
+ "thread_local",
+]
+
+[[package]]
+name = "feanor-math"
+version = "3.5.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a78768b915b608997bb6be55e866f5a9cad0cd045f625d92b446cc8f1ef0ef67"
 dependencies = [
@@ -209,7 +227,7 @@ checksum = "b243169311f88dd089a82b731f3676f2838801a8d3c648966e852ff5a85193ef"
 dependencies = [
  "cpp",
  "cpp_build",
- "feanor-math",
+ "feanor-math 3.5.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "tracing",
 ]
 
@@ -247,7 +265,7 @@ dependencies = [
  "append-only-vec",
  "backtrace",
  "debugit",
- "feanor-math",
+ "feanor-math 3.5.18",
  "feanor-math-hexl",
  "feanor-mempool",
  "feanor-serde",

@@ -202,6 +202,25 @@ impl<NumberRing, ZnTy, A, C> CLPXPlaintextRingBase<NumberRing, ZnTy, A, C>
     }
 }
 
+impl<NumberRing, ZnTy, A, C> Clone for CLPXPlaintextRingBase<NumberRing, ZnTy, A, C>
+    where NumberRing: AbstractNumberRing + Clone,
+        ZnTy: RingStore + Clone,
+        ZnTy::Type: NiceZn,
+        A: Allocator + Clone,
+        C: ConvolutionAlgorithm<ZnTy::Type> + Clone
+{
+    fn clone(&self) -> Self {
+        Self {
+            ZZX: self.ZZX.clone(),
+            base: self.base.clone(),
+            t: self.ZZX.clone_el(&self.t),
+            normt: self.ZZX.base_ring().clone_el(&self.normt),
+            normt_t_inv: self.ZZX.clone_el(&self.normt_t_inv),
+            gen_poly: self.ZZX.clone_el(&self.gen_poly)
+        }
+    }
+}
+
 impl<NumberRing, ZnTy, A, C> PartialEq for CLPXPlaintextRingBase<NumberRing, ZnTy, A, C>
     where NumberRing: AbstractNumberRing,
         ZnTy: RingStore,

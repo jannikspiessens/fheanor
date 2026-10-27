@@ -564,14 +564,70 @@ impl<R: ?Sized + RingBase> PlaintextCircuit<R> {
     /// the latter is more convenient to use.
     /// 
     pub fn vec_add<S: RingStore<Type = R>>(len: usize, _ring: S) -> Self {
+        Self::vec_add_sub::<_, true>(len, _ring)
+    }
+
+    /// 
+    /// Creates the circuit consisting of `len` subtraction gates, which perform
+    /// a component-wise subtraction of two vectors
+    /// ```text
+    ///               | | | | ... | |  
+    ///  |‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾| 
+    ///  | (a, b) -> (a[0], b[0], a[1], b[1], ...) |
+    ///  |_________________________________________|
+    ///           | |     | |           | |  
+    ///          |‾‾‾|   |‾‾‾|         |‾‾‾| 
+    ///          | - |   | - |   ...   | - | 
+    ///          |___|   |___|         |___| 
+    ///            |       |             |   
+    /// ```
+    /// This is a special case of [`PlaintextCircuit::linear_transform()`], in many cases
+    /// the latter is more convenient to use.
+    /// 
+    pub fn vec_sub<S: RingStore<Type = R>>(len: usize, _ring: S) -> Self {
+        Self::vec_add_sub::<_, false>(len, _ring)
+    }
+
+    fn vec_add_sub<S: RingStore<Type = R>, const ADD: bool>(len: usize, _ring: S) -> Self {
         let result = Self {
             input_count: 2 * len,
             gates: Vec::new(),
             output_transforms: (0..len).map(|i| LinearCombination {
                 constant: Coefficient::Zero,
                 factors: (0..(2 * len)).map(|j|
-                    if (j % len) == i { Coefficient::One } else { Coefficient::Zero }).collect()
+                    if (j % len) == i {
+                        if !ADD && j >= len { Coefficient::NegOne } else { Coefficient::One }
+                    } else { Coefficient::Zero }).collect()
             }).collect()
+        };
+        return result;
+    }
+
+    pub fn fold_add<S: RingStore<Type = R>>(len: usize, _ring: S) -> Self {
+        Self::fold_add_sub::<_, true>(len, _ring)
+    }
+
+    pub fn fold_sub<S: RingStore<Type = R>>(len: usize, _ring: S) -> Self {
+        Self::fold_add_sub::<_, false>(len, _ring)
+    }
+
+    fn fold_add_sub<S: RingStore<Type = R>, const ADD: bool>(len: usize, _ring: S) -> Self {
+        let result = Self {
+            input_count: 2*len,
+            gates: Vec::new(),
+            output_transforms: (0..len).map(|i| 
+                LinearCombination{
+                    constant: Coefficient::Zero,
+                    factors: (0..2*len).map(|j|
+                        if j == i {Coefficient::One} else {Coefficient::Zero}).collect()
+                }
+            ).chain((0..len).map(|i| LinearCombination{
+                constant: Coefficient::Zero,
+                factors: (0..2*len).map(|j|
+                    if (j % len) == i {
+                        if !ADD && j < len { Coefficient::NegOne } else { Coefficient::One }
+                    } else {Coefficient::Zero}).collect()
+            })).collect()
         };
         return result;
     }

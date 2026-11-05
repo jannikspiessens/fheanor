@@ -1299,7 +1299,9 @@ pub fn create_circuit_cached<R, F, const LOG: bool>(ring: R, keys: &[CachedDataK
         BaseRing<R>: ZnRing,
         F: FnOnce() -> PlaintextCircuit<R::Type>
 {
-    create_cached::<_, _, _, LOG>((ring, ring.acting_galois_group()), create, keys, cache_dir, if cache_dir.is_none() { StoreAs::None } else { StoreAs::AlwaysJson })
+    // postcard instead of JSON: loading JSON parses every coefficient from a decimal big-integer
+    // string, which is ~40x slower; an existing JSON cache file is converted on first load
+    create_cached::<_, _, _, LOG>((ring, ring.acting_galois_group()), create, keys, cache_dir, if cache_dir.is_none() { StoreAs::None } else { StoreAs::AlwaysPostcard })
 }
 
 #[cfg(test)]
